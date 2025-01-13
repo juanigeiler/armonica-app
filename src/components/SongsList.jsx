@@ -12,13 +12,13 @@ const SongsList = () => {
   const [newSong, setNewSong] = useState({ title: "", album: "", key: "", tabs: "" });
 
   useEffect(() => {
+    const storedArtistName = localStorage.getItem("artistName");
+    setArtistName(storedArtistName || "");
+
     axios
       .get(`${process.env.REACT_APP_API_URL}/artists/${id}/songs`)
       .then((response) => {
         setSongs(response.data);
-        if (response.data.length > 0) {
-          setArtistName(response.data[0].artistName); //revisar aca
-        }
       })
       .catch((error) => console.error(error));
   }, [id]);

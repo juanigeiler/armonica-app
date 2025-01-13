@@ -45,6 +45,7 @@ const ArtistsList = () => {
             <h2 className="text-xl font-semibold mb-2">{artist.name}</h2>
             <Link
               to={`/artist/${artist._id}`}
+              onClick={() => localStorage.setItem("artistName", artist.name)}
               className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300"
             >
               View Songs
