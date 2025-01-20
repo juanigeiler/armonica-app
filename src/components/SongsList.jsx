@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Rating from '@mui/material/Rating';
 
 const SongsList = () => {
   const { id } = useParams();
@@ -11,18 +12,25 @@ const SongsList = () => {
   const [viewModalIsOpen, setViewModalIsOpen] = useState(false);
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
-  const [newSong, setNewSong] = useState({ title: "", album: "", key: "", tabs: "" });
+  const [newSong, setNewSong] = useState({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
+  const [spotifyToken, setSpotifyToken] = useState(null);
 
   useEffect(() => {
     const storedArtistName = localStorage.getItem("artistName");
     setArtistName(storedArtistName || "");
 
-    axios
-      .get(`${process.env.REACT_APP_API_URL}/artists/${id}/songs`)
-      .then((response) => {
+    const fetchSongs = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_URL}/artists/${id}/songs`
+        );
         setSongs(response.data);
-      })
-      .catch((error) => console.error(error));
+      } catch (error) {
+        console.error("Error al obtener las canciones:", error);
+      }
+    };
+
+    fetchSongs();
   }, [id]);
 
   const openViewModal = (song) => {
@@ -41,7 +49,7 @@ const SongsList = () => {
 
   const closeCreateModal = () => {
     setCreateModalIsOpen(false);
-    setNewSong({ title: "", album: "", key: "", tabs: "" });
+    setNewSong({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
   };
 
   const openEditModal = (song) => {
@@ -115,7 +123,7 @@ const SongsList = () => {
         className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 mb-4"
       >Add New Song
       </button>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {songs.map((song) => (
           <div
             key={song._id}
@@ -138,13 +146,22 @@ const SongsList = () => {
                 </button>
               </div>
             </div>
-            <div className="mt-2">
+            <div className="mt-2 flex items-center justify-between">
               <button
                 onClick={() => openViewModal(song)}
-                className="bg-blue-500 text-white py-1 px-3 rounded-md hover:bg-blue-600 transition duration-300 inline-block"
+                className="bg-blue-500 text-white py-1 px-3 rounded-md hover:bg-blue-600 transition duration-300"
               >
                 View Tabs
               </button>
+              <div className="ml-4 mt-1">
+                <Rating
+                  name="difficulty"
+                  defaultValue={song.difficulty}
+                  precision={1}
+                  readOnly
+                  size="small"
+                />
+              </div>
             </div>
             
           </div>
@@ -173,11 +190,24 @@ const SongsList = () => {
               <p className="text-gray-700 mt-4">
                 <strong>Album:</strong> {selectedSong.album}
               </p>
-              <p className="text-gray-700 mt-4">
-                <strong>Key:</strong> {selectedSong.key}
-                <span className="mx-2"></span>
-                <strong>Difficulty:</strong> {selectedSong.difficulty}
-              </p>
+              <div className="mt-2 flex items-left ">
+                <strong className="mr-2">Key: </strong> {selectedSong.key}
+                <span className="mx-3"></span>
+                <strong className="mr-2">Difficulty:</strong> <Rating name="difficulty" id={`difficulty-${selectedSong._id}`} value={selectedSong.difficulty} precision={1} readOnly />
+              </div>
+              {selectedSong.spotify_song_id && (
+                <div className="mt-4">
+                  <h3 className="font-semibold text-lg">Spotify Player</h3>
+                  <iframe
+                    src={`https://open.spotify.com/embed/track/${selectedSong.spotify_song_id}`}
+                    width="300"
+                    height="80"
+                    allowTransparency="true"
+                    allow="encrypted-media"
+                    className="mt-4"
+                  ></iframe>
+                </div>
+              )}
               <h3 className="mt-6 font-semibold text-lg">Tabs:</h3>
               <pre className="bg-gray-100 p-6 rounded-md mt-4 text-lg overflow-auto">
                 {selectedSong.tabs}
@@ -216,20 +246,18 @@ const SongsList = () => {
               className="w-full border rounded-md p-2 mb-4"
             />
             <input
-              type="number"
-              name="difficulty"
-              value={newSong.difficulty}
+              type="text"
+              name="spotify_song_id"
+              value={newSong.spotify_song_id}
               onChange={handleChange}
-              placeholder="Difficulty"
+              placeholder="Spotify Song Id"
               className="w-full border rounded-md p-2 mb-4"
             />
-            <input
-              type="text"
-              name="spotify_url"
-              value={newSong.spotify_url}
-              onChange={handleChange}
-              placeholder="Spotify Url"
-              className="w-full border rounded-md p-2 mb-4"
+            <Rating 
+            onChange={handleChange} 
+            name="difficulty" 
+            defaultValue={newSong.difficulty} 
+            precision={1} 
             />
             <textarea
               name="tabs"
@@ -285,6 +313,20 @@ const SongsList = () => {
               onChange={handleEditChange}
               placeholder="Key"
               className="w-full border rounded-md p-2 mb-4"
+            />
+            <input
+              type="text"
+              name="spotify_song_id"
+              value={selectedSong.spotify_song_id}
+              onChange={handleEditChange}
+              placeholder="Spotify Song Id"
+              className="w-full border rounded-md p-2 mb-4"
+            />
+            <Rating 
+            onChange={handleEditChange} 
+            name="difficulty" 
+            value={selectedSong.difficulty} 
+            precision={1} 
             />
             <textarea
               name="tabs"
