@@ -13,7 +13,6 @@ const SongsList = () => {
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
   const [newSong, setNewSong] = useState({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
-  const [spotifyToken, setSpotifyToken] = useState(null);
 
   useEffect(() => {
     const storedArtistName = localStorage.getItem("artistName");
@@ -200,11 +199,11 @@ const SongsList = () => {
                   <h3 className="font-semibold text-lg">Spotify Player</h3>
                   <iframe
                     src={`https://open.spotify.com/embed/track/${selectedSong.spotify_song_id}`}
-                    width="300"
+                    width="380"
                     height="80"
-                    allowTransparency="true"
                     allow="encrypted-media"
                     className="mt-4"
+                    title= "Spotify iFrame"
                   ></iframe>
                 </div>
               )}
