@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Rating from '@mui/material/Rating';
+import { useAuth } from "../context/AuthContext";
 
 const SongsList = () => {
   const { id } = useParams();
@@ -13,6 +14,7 @@ const SongsList = () => {
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
   const [newSong, setNewSong] = useState({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
+  const { token } = useAuth();
 
   useEffect(() => {
     const storedArtistName = localStorage.getItem("artistName");
@@ -21,7 +23,8 @@ const SongsList = () => {
     const fetchSongs = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/artists/${id}/songs`
+          `${process.env.REACT_APP_API_URL}/artists/${id}/songs`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setSongs(response.data);
       } catch (error) {
@@ -30,7 +33,7 @@ const SongsList = () => {
     };
 
     fetchSongs();
-  }, [id]);
+  }, [id, token]);
 
   const openViewModal = (song) => {
     setSelectedSong(song);
@@ -61,17 +64,19 @@ const SongsList = () => {
     setEditModalIsOpen(false);
   };
 
-  const handleCreateSong = () => {
+  const handleCreateSong = async () => {
     const songData = { ...newSong, artistId: id };
 
-    axios
-    .post(`${process.env.REACT_APP_API_URL}/songs`, songData)
-    .then((response) => {
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/songs`, songData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setSongs((prevSongs) => [...prevSongs, response.data]);
       closeCreateModal();
-    })
-    .catch((error) => console.error("Error creating song:", error));
-};
+    } catch (error) {
+      console.error("Error creating song:", error);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,28 +88,32 @@ const SongsList = () => {
     setSelectedSong((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEditSong = () => {
-    axios
-      .put(`${process.env.REACT_APP_API_URL}/songs/${selectedSong._id}`, selectedSong)
-      .then((response) => {
-        setSongs((prevSongs) =>
-          prevSongs.map((song) =>
-            song._id === response.data._id ? response.data : song
-          )
-        );
-        closeEditModal();
-      })
-      .catch((error) => console.error("Error updating song:", error));
+  const handleEditSong = async () => {
+    try {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/songs/${selectedSong._id}`, selectedSong, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSongs((prevSongs) =>
+        prevSongs.map((song) =>
+          song._id === response.data._id ? response.data : song
+        )
+      );
+      closeEditModal();
+    } catch (error) {
+      console.error("Error updating song:", error);
+    }
   };
 
-  const handleDeleteSong = (songId) => {
+  const handleDeleteSong = async (songId) => {
     if (window.confirm("Are you sure you want to delete this song?")) {
-      axios
-        .delete(`${process.env.REACT_APP_API_URL}/songs/${songId}`)
-        .then(() => {
-          setSongs((prevSongs) => prevSongs.filter((song) => song._id !== songId));
-        })
-        .catch((error) => console.error("Error deleting song:", error));
+      try {
+        await axios.delete(`${process.env.REACT_APP_API_URL}/songs/${songId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setSongs((prevSongs) => prevSongs.filter((song) => song._id !== songId));
+      } catch (error) {
+        console.error("Error deleting song:", error);
+      }
     }
   };
 
@@ -167,7 +176,7 @@ const SongsList = () => {
         ))}
       </div>
 
-      {/* Modal */}
+      {/* View Modal */}
       {viewModalIsOpen && selectedSong && (
         <div
           className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-start pt-20"
@@ -216,6 +225,7 @@ const SongsList = () => {
         </div>
       )}
 
+      {/* Create Modal */}
       {createModalIsOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full">

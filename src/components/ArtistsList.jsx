@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const ArtistsList = () => {
   const [artists, setArtists] = useState([]);
@@ -8,35 +9,46 @@ const ArtistsList = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [newArtist, setNewArtist] = useState({ name: "", genre: "" });
   const [editArtist, setEditArtist] = useState(null);
+  const { token } = useAuth();
 
   useEffect(() => {
     fetchArtists();
   }, []);
 
-  const fetchArtists = () => {
-    axios
-      .get(`${process.env.REACT_APP_API_URL}/artists`)
-      .then((response) => setArtists(response.data))
-      .catch((error) => console.error(error));
+  const fetchArtists = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/artists`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setArtists(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleCreateArtist = () => {
-    axios
-      .post(`${process.env.REACT_APP_API_URL}/artists`, newArtist)
-      .then(() => {
-        setModalIsOpen(false);
-        fetchArtists();
-      })
-      .catch((error) => console.error(error));
+  const handleCreateArtist = async () => {
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL}/artists`, newArtist, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setModalIsOpen(false);
+      fetchArtists();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleDeleteArtist = (artistId) => {
+  const handleDeleteArtist = async (artistId) => {
     const confirmed = window.confirm("Are you sure you want to delete this artist?");
     if (confirmed) {
-      axios
-        .delete(`${process.env.REACT_APP_API_URL}/artists/${artistId}`)
-        .then(() => fetchArtists())
-        .catch((error) => console.error(error));
+      try {
+        await axios.delete(`${process.env.REACT_APP_API_URL}/artists/${artistId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        fetchArtists();
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -45,15 +57,17 @@ const ArtistsList = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEditArtist = () => {
-    axios
-      .put(`${process.env.REACT_APP_API_URL}/artists/${editArtist._id}`, editArtist)
-      .then(() => {
-        setIsEditModalOpen(false);
-        setEditArtist(null);
-        fetchArtists();
-      })
-      .catch((error) => console.error(error));
+  const handleSaveEditArtist = async () => {
+    try {
+      await axios.put(`${process.env.REACT_APP_API_URL}/artists/${editArtist._id}`, editArtist, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsEditModalOpen(false);
+      setEditArtist(null);
+      fetchArtists();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
