@@ -4,7 +4,10 @@ import { useAuth } from '../context/AuthContext';
 const Header = () => {
   const { logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     if (window.confirm('Are you sure you want to log out?')) {
       logout();
     }
@@ -20,10 +23,16 @@ const Header = () => {
           </h1>
         </div>
         <button
+          type="button"
           onClick={handleLogout}
-          className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+          className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer z-50 relative"
+          style={{ 
+            pointerEvents: 'auto',
+            userSelect: 'none',
+            WebkitTapHighlightColor: 'transparent'
+          }}
         >
-          <span className="flex items-center space-x-2">
+          <span className="flex items-center space-x-2 pointer-events-none">
             <span>Logout</span>
             <span>🚪</span>
           </span>

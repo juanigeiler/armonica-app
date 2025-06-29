@@ -10,25 +10,15 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Header />
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <ArtistsList />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/artist/:id" 
-            element={
-              <ProtectedRoute>
-                <SongsList />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
+        <ProtectedRoute>
+          <div className="min-h-screen">
+            <Header />
+            <Routes>
+              <Route path="/" element={<ArtistsList />} />
+              <Route path="/artist/:id" element={<SongsList />} />
+            </Routes>
+          </div>
+        </ProtectedRoute>
       </Router>
     </AuthProvider>
   );

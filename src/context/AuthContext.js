@@ -12,9 +12,9 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
-  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // Iniciamos con loading true
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -23,15 +23,20 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
   };
 
+  // Inicializar el estado de autenticación al cargar la app
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setIsAuthenticated(true);
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-      setIsAuthenticated(false);
-    }
-  }, [token]);
+    const initializeAuth = () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        setIsAuthenticated(true);
+      }
+      setLoading(false); // Terminamos el loading inicial
+    };
+
+    initializeAuth();
+  }, []);
 
   // Interceptor para manejar token expirado
   useEffect(() => {
@@ -39,7 +44,6 @@ export const AuthProvider = ({ children }) => {
       (response) => response,
       (error) => {
         if (error.response?.status === 401 && token) {
-          // Token expirado o inválido
           console.log('Token expired, logging out...');
           logout();
         }
@@ -47,7 +51,6 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    // Cleanup del interceptor
     return () => {
       axios.interceptors.response.eject(responseInterceptor);
     };
