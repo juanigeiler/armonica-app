@@ -11,14 +11,22 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-md border-b">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">🎵 Harmonica Library</h1>
+    <header className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-lg">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <div className="text-3xl">🎵</div>
+          <h1 className="text-2xl font-bold text-white tracking-wide">
+            Harmonica Library
+          </h1>
+        </div>
         <button
           onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300"
+          className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
         >
-          Logout
+          <span className="flex items-center space-x-2">
+            <span>Logout</span>
+            <span>🚪</span>
+          </span>
         </button>
       </div>
     </header>

@@ -10,13 +10,25 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <ProtectedRoute>
-          <Header />
-          <Routes>
-            <Route path="/" element={<ArtistsList />} />
-            <Route path="/artist/:id" element={<SongsList />} />
-          </Routes>
-        </ProtectedRoute>
+        <Header />
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <ArtistsList />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/artist/:id" 
+            element={
+              <ProtectedRoute>
+                <SongsList />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
       </Router>
     </AuthProvider>
   );
