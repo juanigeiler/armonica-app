@@ -43,9 +43,21 @@ export const AuthProvider = ({ children }) => {
     const responseInterceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
+        // Verificar si es un error de token expirado específicamente
         if (error.response?.status === 401 && token) {
-          console.log('Token expired, logging out...');
-          logout();
+          const errorMessage = error.response?.data?.error || error.response?.data?.message || '';
+          
+          // Detectar diferentes variantes del mensaje de token expirado
+          const isTokenExpired = 
+            errorMessage.toLowerCase().includes('token expired') ||
+            errorMessage.toLowerCase().includes('jwt expired') ||
+            errorMessage.toLowerCase().includes('token invalid') ||
+            errorMessage.toLowerCase().includes('unauthorized');
+          
+          if (isTokenExpired) {
+            console.log('Token expired, logging out automatically...');
+            logout();
+          }
         }
         return Promise.reject(error);
       }
@@ -65,6 +77,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', authToken);
       setToken(authToken);
       setIsAuthenticated(true);
+      
+      // Configurar el header de Authorization para futuras peticiones
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
