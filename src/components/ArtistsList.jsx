@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { useApiRequest } from "../hooks/useApiRequest";
 
 const ArtistsList = () => {
   const [artists, setArtists] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
+  const [artistToDelete, setArtistToDelete] = useState(null);
   const [newArtist, setNewArtist] = useState({ name: "", genre: "" });
   const [editArtist, setEditArtist] = useState(null);
-  const { token } = useAuth();
+  const { logout } = useAuth();
+  const api = useApiRequest();
 
   useEffect(() => {
     fetchArtists();
@@ -17,39 +20,46 @@ const ArtistsList = () => {
 
   const fetchArtists = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/artists`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/artists');
       setArtists(response.data);
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching artists:', error);
+      // El hook ya maneja automáticamente el logout si el token expiró
     }
   };
 
   const handleCreateArtist = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/artists`, newArtist, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/artists', newArtist);
       setModalIsOpen(false);
+      setNewArtist({ name: "", genre: "" });
       fetchArtists();
     } catch (error) {
-      console.error(error);
+      console.error('Error creating artist:', error);
     }
   };
 
   const handleDeleteArtist = async (artistId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this artist?");
-    if (confirmed) {
+    setArtistToDelete(artistId);
+    setDeleteModalIsOpen(true);
+  };
+
+  const confirmDeleteArtist = async () => {
+    if (artistToDelete) {
       try {
-        await axios.delete(`${process.env.REACT_APP_API_URL}/artists/${artistId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.delete(`/artists/${artistToDelete}`);
         fetchArtists();
+        setDeleteModalIsOpen(false);
+        setArtistToDelete(null);
       } catch (error) {
-        console.error(error);
+        console.error('Error deleting artist:', error);
       }
     }
+  };
+
+  const cancelDeleteArtist = () => {
+    setDeleteModalIsOpen(false);
+    setArtistToDelete(null);
   };
 
   const handleEditArtist = (artist) => {
@@ -59,14 +69,12 @@ const ArtistsList = () => {
 
   const handleSaveEditArtist = async () => {
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/artists/${editArtist._id}`, editArtist, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/artists/${editArtist._id}`, editArtist);
       setIsEditModalOpen(false);
       setEditArtist(null);
       fetchArtists();
     } catch (error) {
-      console.error(error);
+      console.error('Error updating artist:', error);
     }
   };
 
@@ -151,8 +159,8 @@ const ArtistsList = () => {
         {/* Modales mantienen el diseño actual pero con pequeñas mejoras */}
         {modalIsOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-purple-500">
-              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-emerald-500">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                 🎤 Create Artist
               </h2>
               <label className="block text-sm font-semibold mb-2 text-gray-700">Artist Name</label>
@@ -162,7 +170,7 @@ const ArtistsList = () => {
                 onChange={(e) =>
                   setNewArtist({ ...newArtist, name: e.target.value })
                 }
-                className="w-full border-2 border-gray-200 focus:border-purple-500 p-3 rounded-xl mb-4 transition-colors duration-300"
+                className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl mb-4 transition-colors duration-300"
                 placeholder="Enter artist name..."
               />
               <label className="block text-sm font-semibold mb-2 text-gray-700">Genre</label>
@@ -172,7 +180,7 @@ const ArtistsList = () => {
                 onChange={(e) =>
                   setNewArtist({ ...newArtist, genre: e.target.value })
                 }
-                className="w-full border-2 border-gray-200 focus:border-purple-500 p-3 rounded-xl mb-6 transition-colors duration-300"
+                className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl mb-6 transition-colors duration-300"
                 placeholder="Enter genre..."
               />
               <div className="flex justify-end space-x-3">
@@ -184,7 +192,7 @@ const ArtistsList = () => {
                 </button>
                 <button
                   onClick={handleCreateArtist}
-                  className="bg-gradient-to-r from-purple-500 to-blue-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-blue-700 transition-all duration-300 shadow-lg"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 shadow-lg"
                 >
                   Create ✨
                 </button>
@@ -231,6 +239,42 @@ const ArtistsList = () => {
                 >
                   Save Changes ✨
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteModalIsOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-red-500">
+              <div className="text-center">
+                <div className="mb-4">
+                  <span className="text-6xl">🗑️</span>
+                </div>
+                
+                <h2 className="text-2xl font-bold mb-4 text-gray-800">
+                  Delete Artist
+                </h2>
+                
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to delete this artist? This action will also delete all associated songs and cannot be undone.
+                </p>
+                
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={cancelDeleteArtist}
+                    className="bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 transition-colors duration-300 font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteArtist}
+                    className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg font-semibold"
+                  >
+                    Delete Artist
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import Rating from '@mui/material/Rating';
+import { Rating } from '@mui/material';
 import { useAuth } from "../context/AuthContext";
+import { useApiRequest } from "../hooks/useApiRequest";
+import TabsViewer from "./TabsViewer";
 
 const SongsList = () => {
   const { id } = useParams();
@@ -13,8 +14,11 @@ const SongsList = () => {
   const [viewModalIsOpen, setViewModalIsOpen] = useState(false);
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
+  const [songToDelete, setSongToDelete] = useState(null);
   const [newSong, setNewSong] = useState({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
   const { token } = useAuth();
+  const api = useApiRequest();
 
   useEffect(() => {
     const storedArtistName = localStorage.getItem("artistName");
@@ -22,10 +26,7 @@ const SongsList = () => {
 
     const fetchSongs = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/artists/${id}/songs`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const response = await api.get(`/artists/${id}/songs`);
         setSongs(response.data);
       } catch (error) {
         console.error("Error al obtener las canciones:", error);
@@ -68,9 +69,7 @@ const SongsList = () => {
     const songData = { ...newSong, artistId: id };
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/songs`, songData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.post('/songs', songData);
       setSongs((prevSongs) => [...prevSongs, response.data]);
       closeCreateModal();
     } catch (error) {
@@ -98,14 +97,15 @@ const SongsList = () => {
 
   const handleEditSong = async () => {
     try {
-      const response = await axios.put(`${process.env.REACT_APP_API_URL}/songs/${selectedSong._id}`, selectedSong, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSongs((prevSongs) =>
-        prevSongs.map((song) =>
+      const response = await api.put(`/songs/${selectedSong._id}`, selectedSong);
+      // Actualizar la lista de canciones con la canción editada
+      setSongs((prevSongs) => {
+        const updatedSongs = prevSongs.map((song) =>
           song._id === response.data._id ? response.data : song
-        )
-      );
+        );
+        return updatedSongs;
+      });
+      // Cerrar el modal
       closeEditModal();
     } catch (error) {
       console.error("Error updating song:", error);
@@ -113,16 +113,26 @@ const SongsList = () => {
   };
 
   const handleDeleteSong = async (songId) => {
-    if (window.confirm("Are you sure you want to delete this song?")) {
+    setSongToDelete(songId);
+    setDeleteModalIsOpen(true);
+  };
+
+  const confirmDeleteSong = async () => {
+    if (songToDelete) {
       try {
-        await axios.delete(`${process.env.REACT_APP_API_URL}/songs/${songId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setSongs((prevSongs) => prevSongs.filter((song) => song._id !== songId));
+        await api.delete(`/songs/${songToDelete}`);
+        setSongs((prevSongs) => prevSongs.filter((song) => song._id !== songToDelete));
+        setDeleteModalIsOpen(false);
+        setSongToDelete(null);
       } catch (error) {
         console.error("Error deleting song:", error);
       }
     }
+  };
+
+  const cancelDeleteSong = () => {
+    setDeleteModalIsOpen(false);
+    setSongToDelete(null);
   };
 
   return (
@@ -139,7 +149,7 @@ const SongsList = () => {
         <div className="mb-6">
           <button
             onClick={() => navigate("/")}
-            className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-3 rounded-full hover:from-gray-700 hover:to-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
+            className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-full hover:from-gray-600 hover:to-gray-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
           >
             <span className="flex items-center space-x-2">
               <span>⬅</span>
@@ -200,8 +210,8 @@ const SongsList = () => {
                 </button>
                 <div className="ml-4 mt-1">
                   <Rating
-                    name="difficulty"
-                    defaultValue={song.difficulty}
+                    name={`difficulty-${song._id}`}
+                    value={song.difficulty}
                     precision={1}
                     readOnly
                     size="small"
@@ -220,49 +230,133 @@ const SongsList = () => {
               if (e.target === e.currentTarget) closeViewModal();
             }}
           >
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl w-full mx-4 relative">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-5xl w-full mx-4 relative">
               <button
                 onClick={closeViewModal}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl z-10"
                 aria-label="Close"
               >
                 ✖
               </button>
 
-              <div className="max-h-[80vh] overflow-auto">
-                <h2 className="text-2xl font-bold">{selectedSong.title}</h2>
-                <p className="text-gray-700 mt-4">
-                  <strong>Album:</strong> {selectedSong.album}
-                </p>
-                <div className="mt-2 flex items-left ">
-                  <strong className="mr-2">Key: </strong> {selectedSong.key}
-                  <span className="mx-3"></span>
-                  <strong className="mr-2">Difficulty:</strong> 
-                  <Rating 
-                    name="difficulty" 
-                    id={`difficulty-${selectedSong._id}`} 
-                    value={selectedSong.difficulty} 
-                    precision={1} 
-                    readOnly 
-                  />
+              <div className="max-h-[90vh] overflow-auto">
+                <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  🎵 {selectedSong.title}
+                </h2>
+                
+                {/* Song Information Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 border border-blue-200">
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-3xl">💿</span>
+                        <div>
+                          <p className="text-base font-bold text-gray-700 uppercase tracking-wide">Album</p>
+                          <p className="text-xl font-semibold text-gray-800">{selectedSong.album}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-3xl">🎼</span>
+                        <div>
+                          <p className="text-base font-bold text-gray-700 uppercase tracking-wide">Key</p>
+                          <p className="text-xl font-semibold text-gray-800">{selectedSong.key}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-3xl">🔥</span>
+                        <div>
+                          <p className="text-base font-bold text-gray-700 uppercase tracking-wide">Difficulty</p>
+                          <Rating 
+                            name="difficulty" 
+                            id={`difficulty-${selectedSong._id}`} 
+                            value={selectedSong.difficulty} 
+                            precision={1} 
+                            readOnly 
+                            size="medium"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                
+                {/* Spotify Player Section */}
                 {selectedSong.spotify_song_id && (
-                  <div className="mt-4">
-                    <h3 className="font-semibold text-lg">Spotify Player</h3>
-                    <iframe
-                      src={`https://open.spotify.com/embed/track/${selectedSong.spotify_song_id}`}
-                      width="380"
-                      height="80"
-                      allow="encrypted-media"
-                      className="mt-4"
-                      title="Spotify iFrame"
-                    ></iframe>
+                  <div className="bg-white rounded-xl p-6 mb-6 border border-gray-200 shadow-sm">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <span className="text-2xl">🎧</span>
+                      <h3 className="text-xl font-semibold text-gray-800">Listen on Spotify</h3>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-6 items-start">
+                      {/* Spotify Player */}
+                      <div className="flex justify-center md:justify-start">
+                        <iframe
+                          src={`https://open.spotify.com/embed/track/${selectedSong.spotify_song_id}`}
+                          width="100%"
+                          height="152"
+                          allow="encrypted-media"
+                          className="rounded-lg max-w-sm"
+                          title="Spotify iFrame"
+                        ></iframe>
+                      </div>
+                      
+                      {/* Song Details - Hidden on mobile */}
+                      <div className="hidden md:block">
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
+                          <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center">
+                            <span className="text-lg mr-1">🎵</span>
+                            Song Details
+                          </h4>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600 font-medium">Title:</span>
+                              <span className="text-xs text-gray-800 font-semibold text-right truncate ml-2">{selectedSong.title}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600 font-medium">Album:</span>
+                              <span className="text-xs text-gray-800 font-semibold text-right truncate ml-2">{selectedSong.album}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600 font-medium">Key:</span>
+                              <span className="text-xs text-gray-800 font-semibold text-right">{selectedSong.key}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600 font-medium">Difficulty:</span>
+                              <Rating 
+                                name="spotify-difficulty" 
+                                value={selectedSong.difficulty} 
+                                precision={1} 
+                                readOnly 
+                                size="small"
+                                sx={{ fontSize: '0.875rem' }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
-                <h3 className="mt-6 font-semibold text-lg">Tabs:</h3>
-                <pre className="bg-gray-100 p-6 rounded-md mt-4 text-lg overflow-auto">
-                  {selectedSong.tabs}
-                </pre>
+                
+                {/* Tabs Section */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">🎵</span>
+                      <h3 className="text-xl font-semibold text-gray-800">Harmonica Tabs</h3>
+                    </div>
+                  </div>
+                  <div className="p-0">
+                    <TabsViewer tabs={selectedSong.tabs} title={selectedSong.title} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -270,70 +364,108 @@ const SongsList = () => {
 
         {/* Create Modal */}
         {createModalIsOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full mx-4">
-              <h2 className="text-2xl font-bold mb-4">Create New Song</h2>
-              <input
-                type="text"
-                name="title"
-                value={newSong.title}
-                onChange={handleChange}
-                placeholder="Title"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <input
-                type="text"
-                name="album"
-                value={newSong.album}
-                onChange={handleChange}
-                placeholder="Album"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <input
-                type="text"
-                name="key"
-                value={newSong.key}
-                onChange={handleChange}
-                placeholder="Key"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <input
-                type="text"
-                name="spotify_song_id"
-                value={newSong.spotify_song_id}
-                onChange={handleChange}
-                placeholder="Spotify Song Id"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Difficulty:</label>
-                <Rating 
-                  name="difficulty" 
-                  value={newSong.difficulty} 
-                  onChange={handleRatingChange}
-                  precision={1} 
-                />
+          <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 border-t-4 border-emerald-500 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                🎤 Create New Song
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Song Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={newSong.title}
+                    onChange={handleChange}
+                    placeholder="Enter song title..."
+                    className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Album</label>
+                  <input
+                    type="text"
+                    name="album"
+                    value={newSong.album}
+                    onChange={handleChange}
+                    placeholder="Enter album name..."
+                    className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                </div>
               </div>
-              <textarea
-                name="tabs"
-                value={newSong.tabs}
-                onChange={handleChange}
-                placeholder="Tabs"
-                className="w-full border rounded-md p-2 mb-4"
-                rows="6"
-              />
+              
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Key</label>
+                  <input
+                    type="text"
+                    name="key"
+                    value={newSong.key}
+                    onChange={handleChange}
+                    placeholder="e.g., C, G, Am..."
+                    className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Difficulty</label>
+                  <div className="bg-gray-50 px-3 py-2 rounded-xl border-2 border-gray-200 flex items-center">
+                    <Rating 
+                      name="difficulty" 
+                      value={newSong.difficulty} 
+                      onChange={handleRatingChange}
+                      precision={1}
+                      size="medium"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Spotify Song ID</label>
+                <input
+                  type="text"
+                  name="spotify_song_id"
+                  value={newSong.spotify_song_id}
+                  onChange={handleChange}
+                  placeholder="Optional: Spotify track ID..."
+                  className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl transition-colors duration-300"
+                />
+                <p className="text-xs text-gray-500 mt-1">💡 You can find this in the Spotify track URL</p>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">
+                  🎹 Harmonica Tabs
+                </label>
+                <textarea
+                  name="tabs"
+                  value={newSong.tabs}
+                  onChange={handleChange}
+                  placeholder="Enter harmonica tabs here...&#10;Example:&#10;(4)teue 4(5)5 5&#10;(4)teue 4(5)5 5"
+                  className="w-full border-2 border-gray-200 focus:border-emerald-500 p-4 rounded-xl transition-colors duration-300 font-mono text-sm"
+                  rows="8"
+                  style={{ fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", monospace' }}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Use (4) or -4 for aspirated notes, and 4 for blown notes
+                </p>
+              </div>
+              
               <div className="flex justify-end gap-4">
                 <button
                   onClick={closeCreateModal}
-                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600"
+                  className="bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 transition-colors duration-300 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateSong}
-                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 shadow-lg font-semibold"
                 >
-                  Save
+                  Create Song ✨
                 </button>
               </div>
             </div>
@@ -342,71 +474,145 @@ const SongsList = () => {
 
         {/* Edit Modal */}
         {editModalIsOpen && selectedSong && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full mx-4">
-              <h2 className="text-2xl font-bold mb-4">Edit Song</h2>
-              <input
-                type="text"
-                name="title"
-                value={selectedSong.title}
-                onChange={handleEditChange}
-                placeholder="Title"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <input
-                type="text"
-                name="album"
-                value={selectedSong.album}
-                onChange={handleEditChange}
-                placeholder="Album"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <input
-                type="text"
-                name="key"
-                value={selectedSong.key}
-                onChange={handleEditChange}
-                placeholder="Key"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <input
-                type="text"
-                name="spotify_song_id"
-                value={selectedSong.spotify_song_id}
-                onChange={handleEditChange}
-                placeholder="Spotify Song Id"
-                className="w-full border rounded-md p-2 mb-4"
-              />
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Difficulty:</label>
-                <Rating 
-                  name="difficulty" 
-                  value={selectedSong.difficulty} 
-                  onChange={handleEditRatingChange}
-                  precision={1} 
-                />
+          <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 border-t-4 border-blue-500 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                ✏️ Edit Song
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Song Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={selectedSong.title}
+                    onChange={handleEditChange}
+                    placeholder="Enter song title..."
+                    className="w-full border-2 border-gray-200 focus:border-blue-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Album</label>
+                  <input
+                    type="text"
+                    name="album"
+                    value={selectedSong.album}
+                    onChange={handleEditChange}
+                    placeholder="Enter album name..."
+                    className="w-full border-2 border-gray-200 focus:border-blue-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                </div>
               </div>
-              <textarea
-                name="tabs"
-                value={selectedSong.tabs}
-                onChange={handleEditChange}
-                placeholder="Tabs"
-                className="w-full border rounded-md p-2 mb-4"
-                rows="6"
-              />
+              
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Key</label>
+                  <input
+                    type="text"
+                    name="key"
+                    value={selectedSong.key}
+                    onChange={handleEditChange}
+                    placeholder="e.g., C, G, Am..."
+                    className="w-full border-2 border-gray-200 focus:border-blue-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Difficulty</label>
+                  <div className="bg-gray-50 px-3 py-2 rounded-xl border-2 border-gray-200 flex items-center">
+                    <Rating 
+                      name="difficulty" 
+                      value={selectedSong.difficulty} 
+                      onChange={handleEditRatingChange}
+                      precision={1}
+                      size="medium"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Spotify Song ID</label>
+                <input
+                  type="text"
+                  name="spotify_song_id"
+                  value={selectedSong.spotify_song_id}
+                  onChange={handleEditChange}
+                  placeholder="Optional: Spotify track ID..."
+                  className="w-full border-2 border-gray-200 focus:border-blue-500 p-3 rounded-xl transition-colors duration-300"
+                />
+                <p className="text-xs text-gray-500 mt-1">💡 You can find this in the Spotify track URL</p>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">
+                  🎹 Harmonica Tabs
+                </label>
+                <textarea
+                  name="tabs"
+                  value={selectedSong.tabs}
+                  onChange={handleEditChange}
+                  placeholder="Enter harmonica tabs here...&#10;Example:&#10;(4)teue 4(5)5 5&#10;(4)teue 4(5)5 5"
+                  className="w-full border-2 border-gray-200 focus:border-blue-500 p-4 rounded-xl transition-colors duration-300 font-mono text-sm"
+                  rows="8"
+                  style={{ fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", monospace' }}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Use (4) or -4 for aspirated notes, and 4 for blown notes
+                </p>
+              </div>
+              
               <div className="flex justify-end gap-4">
                 <button
                   onClick={closeEditModal}
-                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600"
+                  className="bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 transition-colors duration-300 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleEditSong}
-                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg font-semibold"
                 >
-                  Save Changes
+                  Save Changes ✨
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteModalIsOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-red-500">
+              <div className="text-center">
+                <div className="mb-4">
+                  <span className="text-6xl">🗑️</span>
+                </div>
+                
+                <h2 className="text-2xl font-bold mb-4 text-gray-800">
+                  Delete Song
+                </h2>
+                
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to delete this song? This action cannot be undone.
+                </p>
+                
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={cancelDeleteSong}
+                    className="bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 transition-colors duration-300 font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteSong}
+                    className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg font-semibold"
+                  >
+                    Delete Song
+                  </button>
+                </div>
               </div>
             </div>
           </div>
