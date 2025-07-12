@@ -136,15 +136,16 @@ const SongsList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Patrón musical de fondo */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="text-9xl text-blue-400 absolute top-16 left-16 transform rotate-12">🎵</div>
-        <div className="text-7xl text-purple-400 absolute top-32 right-24 transform -rotate-12">🎶</div>
-        <div className="text-6xl text-indigo-400 absolute bottom-40 left-1/3 transform rotate-45">🎼</div>
-        <div className="text-8xl text-blue-400 absolute bottom-24 right-1/4 transform -rotate-45">♪</div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 relative">
+      {/* Subtle geometric pattern */}
+      <div className="absolute inset-0 opacity-[0.25]" style={{
+        backgroundImage: `radial-gradient(circle at 25% 25%, #8b5cf6 2px, transparent 2px),
+                         radial-gradient(circle at 75% 75%, #3b82f6 1px, transparent 1px),
+                         radial-gradient(circle at 50% 50%, #6366f1 1px, transparent 1px)`,
+        backgroundSize: '60px 60px, 80px 80px, 40px 40px',
+        backgroundPosition: '0 0, 20px 20px, 10px 10px'
+      }}></div>
+      
       <div className="relative container mx-auto p-6">
         <div className="mb-6">
           <button
@@ -159,7 +160,7 @@ const SongsList = () => {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4 font-['Space_Grotesk']">
             🎵 {artistName}
           </h1>
           <p className="text-gray-600 text-lg">Explore the musical collection</p>
@@ -189,35 +190,80 @@ const SongsList = () => {
           {songs.map((song) => (
             <div
               key={song._id}
-              className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-2 border border-blue-100"
+              className="bg-gray-50/95 backdrop-blur-sm shadow-lg rounded-2xl p-6 hover:shadow-2xl transition-all duration-500 flex flex-col transform hover:-translate-y-3 hover:bg-white group"
             >
               <div className="flex justify-between items-center mb-2">
-                <h2 className="text-xl font-semibold">{song.title}</h2>
-                {isAuthenticated && (
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => openEditModal(song)}
-                      className="text-blue-500 hover:text-blue-700 transition duration-300"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => handleDeleteSong(song._id)}
-                      className="text-red-500 hover:text-red-700 transition duration-300"
-                    >
-                      🗑️
-                    </button>
+                <h2 className="text-xl font-bold text-gray-800 font-['Space_Grotesk']">{song.title}</h2>
+                {isAuthenticated ? (
+                  <div className="flex items-center space-x-1">
+                    <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full p-1.5 hover:from-blue-200 hover:to-indigo-200 transition-all duration-300 animate-bounce delay-100">
+                      <button
+                        onClick={() => openEditModal(song)}
+                        className="text-blue-500 hover:text-blue-700 transition duration-300 hover:scale-110 transform"
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                    <div className="bg-gradient-to-r from-red-100 to-pink-100 rounded-full p-1.5 hover:from-red-200 hover:to-pink-200 transition-all duration-300 animate-bounce delay-200">
+                      <button
+                        onClick={() => handleDeleteSong(song._id)}
+                        className="text-red-500 hover:text-red-700 transition duration-300 hover:scale-110 transform"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    <div className="bg-gradient-to-r from-emerald-100 to-teal-100 rounded-full p-1.5 hover:from-emerald-200 hover:to-teal-200 transition-all duration-300 animate-bounce delay-300">
+                      <button
+                        onClick={() => openViewModal(song)}
+                        className="text-emerald-600 hover:text-emerald-700 transition duration-300 hover:scale-110 transform"
+                        title="View Tabs"
+                      >
+                        📖
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-1">
+                    <div className="bg-gradient-to-r from-emerald-100 to-teal-100 rounded-full p-1.5 hover:from-emerald-200 hover:to-teal-200 transition-all duration-300 animate-bounce delay-100">
+                      <button
+                        onClick={() => openViewModal(song)}
+                        className="text-emerald-600 hover:text-emerald-700 transition duration-300 hover:scale-110 transform"
+                        title="View Tabs"
+                      >
+                        📖
+                      </button>
+                    </div>
+                    <div className="bg-gradient-to-r from-purple-100 to-violet-100 rounded-full p-1.5 animate-bounce delay-300">
+                      <span className="text-purple-600 text-sm">🎵</span>
+                    </div>
+                    <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full p-1.5 animate-bounce delay-400">
+                      <span className="text-blue-600 text-sm">🎶</span>
+                    </div>
                   </div>
                 )}
               </div>
-              <div className="mt-2 flex items-center justify-between">
-                <button
-                  onClick={() => openViewModal(song)}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105"
-                >
-                  View Tabs
-                </button>
-                <div className="ml-4 mt-1">
+              <div className="mt-1 flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-sm">
+                  {song.key && (
+                    <div className="flex items-center space-x-1">
+                      <span className="text-base text-gray-500 font-medium">🎼</span>
+                      <span className={`px-2 py-1 rounded-full text-sm font-bold text-white
+                        ${song.key === 'C' ? 'bg-sky-400' : 
+                          song.key === 'D' ? 'bg-orange-400' :
+                          song.key === 'E' ? 'bg-yellow-400' :
+                          song.key === 'F' ? 'bg-green-400' :
+                          song.key === 'G' ? 'bg-blue-400' :
+                          song.key === 'A' ? 'bg-indigo-400' :
+                          song.key === 'B' ? 'bg-purple-400' :
+                          'bg-gray-400'
+                        }`}
+                      >
+                        {song.key}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div>
                   <Rating
                     name={`difficulty-${song._id}`}
                     value={song.difficulty}
@@ -226,6 +272,31 @@ const SongsList = () => {
                     size="small"
                   />
                 </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center space-x-1">
+                      <span>🎛️</span>
+                      <span>Edit & manage</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span>🎪</span>
+                      <span>Your collection</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-1">
+                      <span>🎸</span>
+                      <span>Practice ready</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span>📖</span>
+                      <span>Learn & play</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -239,7 +310,7 @@ const SongsList = () => {
               if (e.target === e.currentTarget) closeViewModal();
             }}
           >
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-5xl w-full mx-4 relative">
+            <div className="bg-stone-50 rounded-lg shadow-lg p-8 max-w-5xl w-full mx-4 relative">
               <button
                 onClick={closeViewModal}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl z-10"
@@ -297,7 +368,7 @@ const SongsList = () => {
                 
                 {/* Spotify Player Section */}
                 {selectedSong.spotify_song_id && (
-                  <div className="bg-white rounded-xl p-6 mb-6 border border-gray-200 shadow-sm">
+                  <div className="bg-stone-100 rounded-xl p-6 mb-6 border border-stone-300 shadow-sm">
                     <div className="flex items-center space-x-3 mb-4">
                       <span className="text-2xl">🎧</span>
                       <h3 className="text-xl font-semibold text-gray-800">Listen on Spotify</h3>
@@ -355,7 +426,7 @@ const SongsList = () => {
                 )}
                 
                 {/* Tabs Section */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="bg-stone-100 rounded-xl border border-stone-300 shadow-sm overflow-hidden">
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-gray-200">
                     <div className="flex items-center space-x-3">
                       <span className="text-2xl">🎵</span>
@@ -374,8 +445,8 @@ const SongsList = () => {
         {/* Create Modal */}
         {createModalIsOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 border-t-4 border-emerald-500 max-h-[90vh] overflow-y-auto">
-              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            <div className="bg-stone-50 rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 border-t-4 border-emerald-500 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-['Space_Grotesk']">
                 🎤 Create New Song
               </h2>
               
@@ -484,8 +555,8 @@ const SongsList = () => {
         {/* Edit Modal */}
         {editModalIsOpen && selectedSong && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 border-t-4 border-blue-500 max-h-[90vh] overflow-y-auto">
-              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <div className="bg-stone-50 rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 border-t-4 border-blue-500 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-['Space_Grotesk']">
                 ✏️ Edit Song
               </h2>
               
@@ -594,7 +665,7 @@ const SongsList = () => {
         {/* Delete Confirmation Modal */}
         {deleteModalIsOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-red-500">
+            <div className="bg-stone-50 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-red-500">
               <div className="text-center">
                 <div className="mb-4">
                   <span className="text-6xl">🗑️</span>

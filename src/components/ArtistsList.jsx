@@ -79,18 +79,19 @@ const ArtistsList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      {/* Patrón de fondo musical */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="text-9xl text-gray-400 absolute top-20 left-10 transform rotate-12">♪</div>
-        <div className="text-7xl text-gray-400 absolute top-40 right-20 transform -rotate-12">♫</div>
-        <div className="text-6xl text-gray-400 absolute bottom-32 left-1/4 transform rotate-45">♩</div>
-        <div className="text-8xl text-gray-400 absolute bottom-20 right-1/3 transform -rotate-45">♬</div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 relative">
+      {/* Subtle geometric pattern */}
+      <div className="absolute inset-0 opacity-[0.25]" style={{
+        backgroundImage: `radial-gradient(circle at 25% 25%, #8b5cf6 2px, transparent 2px),
+                         radial-gradient(circle at 75% 75%, #3b82f6 1px, transparent 1px),
+                         radial-gradient(circle at 50% 50%, #6366f1 1px, transparent 1px)`,
+        backgroundSize: '60px 60px, 80px 80px, 40px 40px',
+        backgroundPosition: '0 0, 20px 20px, 10px 10px'
+      }}></div>
       
       <div className="relative container mx-auto p-6">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4 font-['Space_Grotesk']">
             🎵 Artists Collection
           </h1>
           <p className="text-gray-600 text-lg">Discover and manage your musical library</p>
@@ -120,32 +121,70 @@ const ArtistsList = () => {
           {artists.map((artist) => (
             <div
               key={artist._id}
-              className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-2 border border-purple-100"
+              className="bg-gray-50/95 backdrop-blur-sm shadow-lg rounded-2xl p-6 hover:shadow-2xl transition-all duration-500 flex flex-col transform hover:-translate-y-3 hover:bg-white group"
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">{artist.name}</h2>
-                {isAuthenticated && (
+                <h2 className="text-xl font-bold text-gray-800 font-['Space_Grotesk']">{artist.name}</h2>
+                {isAuthenticated ? (
                   <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditArtist(artist)}
-                      className="text-blue-500 hover:text-blue-700 transition-colors duration-300 text-xl hover:scale-110 transform"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => handleDeleteArtist(artist._id)}
-                      className="text-red-500 hover:text-red-700 transition-colors duration-300 text-xl hover:scale-110 transform"
-                    >
-                      🗑️
-                    </button>
+                    <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full p-2 hover:from-blue-200 hover:to-indigo-200 transition-all duration-300 animate-pulse">
+                      <button
+                        onClick={() => handleEditArtist(artist)}
+                        className="text-blue-500 hover:text-blue-700 transition-colors duration-300 text-lg hover:scale-110 transform"
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                    <div className="bg-gradient-to-r from-red-100 to-pink-100 rounded-full p-2 hover:from-red-200 hover:to-pink-200 transition-all duration-300 animate-pulse delay-100">
+                      <button
+                        onClick={() => handleDeleteArtist(artist._id)}
+                        className="text-red-500 hover:text-red-700 transition-colors duration-300 text-lg hover:scale-110 transform"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-1">
+                    <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-full p-2 animate-pulse">
+                      <span className="text-purple-600 text-lg">🎵</span>
+                    </div>
+                    <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full p-2 animate-pulse delay-100">
+                      <span className="text-blue-600 text-lg">🎤</span>
+                    </div>
                   </div>
                 )}
               </div>
               
               <div className="mb-4">
-                <span className="inline-block bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full font-medium">
+                <span className="inline-block bg-amber-200 text-amber-800 text-sm px-3 py-1 rounded-full font-medium">
                   {artist.genre || "Genre"}
                 </span>
+                <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+                  {isAuthenticated ? (
+                    <>
+                      <div className="flex items-center space-x-1">
+                        <span>✨</span>
+                        <span>Manage & edit</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span>🎼</span>
+                        <span>Your library</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center space-x-1">
+                        <span>🎶</span>
+                        <span>Explore music</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span>✨</span>
+                        <span>Discover</span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
               
               <div className="mt-auto">
@@ -168,8 +207,8 @@ const ArtistsList = () => {
         {/* Modales mantienen el diseño actual pero con pequeñas mejoras */}
         {modalIsOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-emerald-500">
-              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            <div className="bg-stone-50 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-emerald-500">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-['Space_Grotesk']">
                 🎤 Create Artist
               </h2>
               <label className="block text-sm font-semibold mb-2 text-gray-700">Artist Name</label>
@@ -213,7 +252,7 @@ const ArtistsList = () => {
         {/* Modal de edición similar con los mismos estilos */}
         {isEditModalOpen && editArtist && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-blue-500">
+            <div className="bg-stone-50 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-blue-500">
               <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ✏️ Edit Artist
               </h2>
@@ -256,7 +295,7 @@ const ArtistsList = () => {
         {/* Delete Confirmation Modal */}
         {deleteModalIsOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-red-500">
+            <div className="bg-stone-50 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-t-4 border-red-500">
               <div className="text-center">
                 <div className="mb-4">
                   <span className="text-6xl">🗑️</span>

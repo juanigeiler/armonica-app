@@ -48,7 +48,7 @@ const TabsViewer = ({ tabs, title }) => {
   };
 
   const ControlBar = () => (
-    <div className="flex flex-wrap items-center justify-between gap-2 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+    <div className="flex flex-wrap items-center justify-between gap-2 p-4 bg-gradient-to-r from-stone-50 to-amber-50 border-b border-stone-200">
       <div className="flex items-center gap-3">
         <button
           onClick={zoomOut}
@@ -57,7 +57,7 @@ const TabsViewer = ({ tabs, title }) => {
         >
           🔍−
         </button>
-        <span className="text-sm font-semibold px-3 py-1 bg-white rounded-lg shadow-sm border border-blue-200 text-blue-700">
+        <span className="text-sm font-semibold px-3 py-1 bg-white rounded-lg shadow-sm border border-stone-200 text-stone-700">
           {fontSize}px
         </span>
         <button
@@ -91,7 +91,7 @@ const TabsViewer = ({ tabs, title }) => {
   const TabsContent = () => (
     <div
       ref={tabsRef}
-      className="tabs-container overflow-auto p-4 bg-white"
+      className="tabs-container overflow-auto p-4 bg-stone-50"
       style={{ 
         height: isFullscreen ? 'calc(100vh - 120px)' : '400px',
         fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", monospace',
@@ -106,8 +106,8 @@ const TabsViewer = ({ tabs, title }) => {
 
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-50 bg-white flex flex-col">
-        <div className="flex items-center justify-center p-4 bg-gradient-to-r from-blue-100 to-indigo-100 border-b border-blue-200">
+      <div className="fixed inset-0 z-50 bg-stone-50 flex flex-col">
+        <div className="flex items-center justify-center p-4 bg-gradient-to-r from-stone-100 to-amber-100 border-b border-stone-200">
           <h3 className="text-lg font-bold text-blue-800">{title} - Tabs</h3>
         </div>
         <ControlBar />

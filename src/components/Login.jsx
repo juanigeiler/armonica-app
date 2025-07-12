@@ -31,20 +31,32 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-800 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Elementos musicales de fondo */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Dynamic background elements */}
       <div className="absolute inset-0">
-        <div className="text-9xl text-white/10 absolute top-20 left-10 transform rotate-12 animate-pulse">♪</div>
-        <div className="text-7xl text-white/10 absolute top-40 right-20 transform -rotate-12 animate-pulse delay-1000">♫</div>
-        <div className="text-6xl text-white/10 absolute bottom-32 left-1/4 transform rotate-45 animate-pulse delay-2000">♩</div>
-        <div className="text-8xl text-white/10 absolute bottom-20 right-1/3 transform -rotate-45 animate-pulse delay-3000">♬</div>
-        <div className="text-5xl text-white/10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-12 animate-pulse delay-4000">🎵</div>
+        {/* Large floating circles */}
+        <div className="absolute top-80 sm:top-20 left-4 sm:left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-4 sm:bottom-20 right-4 sm:right-10 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-10 sm:top-1/2 left-1/3 w-64 h-64 bg-blue-300/15 rounded-full blur-2xl animate-pulse delay-2000"></div>
+        
+        {/* Musical notes floating */}
+        <div className="absolute top-8 sm:top-32 right-8 sm:right-24 text-4xl sm:text-6xl text-white/20 animate-bounce delay-500">♪</div>
+        <div className="absolute bottom-8 sm:bottom-32 left-8 sm:left-24 text-5xl sm:text-7xl text-white/15 animate-bounce delay-1500">♫</div>
+        <div className="absolute bottom-40 sm:top-3/4 right-1/4 sm:right-1/3 text-3xl sm:text-5xl text-white/20 animate-bounce delay-1000">🎵</div>
+        
+        {/* Geometric pattern overlay */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `radial-gradient(circle at 20% 20%, #ffffff 1px, transparent 1px),
+                           radial-gradient(circle at 80% 80%, #a855f7 1px, transparent 1px),
+                           radial-gradient(circle at 40% 60%, #3b82f6 1px, transparent 1px)`,
+          backgroundSize: '80px 80px, 120px 120px, 60px 60px',
+          backgroundPosition: '0 0, 40px 40px, 20px 20px'
+        }}></div>
       </div>
-
       <div className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🎵</div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2 font-['Space_Grotesk']">
             Welcome Back
           </h1>
           <p className="text-gray-600 text-lg">Sign in to access your musical universe</p>
