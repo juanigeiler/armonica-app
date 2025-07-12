@@ -17,7 +17,7 @@ const SongsList = () => {
   const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
   const [songToDelete, setSongToDelete] = useState(null);
   const [newSong, setNewSong] = useState({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
-  const { token } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const api = useApiRequest();
 
   useEffect(() => {
@@ -163,20 +163,27 @@ const SongsList = () => {
             🎵 {artistName}
           </h1>
           <p className="text-gray-600 text-lg">Explore the musical collection</p>
+          {!isAuthenticated && (
+            <p className="text-gray-500 text-sm mt-2">
+              🔒 Login required to create, edit, or delete songs
+            </p>
+          )}
         </div>
 
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={openCreateModal}
-            className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-8 rounded-full hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold text-lg"
-          >
-            <span className="flex items-center space-x-2">
-              <span>✨</span>
-              <span>Add New Song</span>
-              <span>🎤</span>
-            </span>
-          </button>
-        </div>
+        {isAuthenticated && (
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={openCreateModal}
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-8 rounded-full hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold text-lg"
+            >
+              <span className="flex items-center space-x-2">
+                <span>✨</span>
+                <span>Add New Song</span>
+                <span>🎤</span>
+              </span>
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {songs.map((song) => (
@@ -186,20 +193,22 @@ const SongsList = () => {
             >
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-semibold">{song.title}</h2>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => openEditModal(song)}
-                    className="text-blue-500 hover:text-blue-700 transition duration-300"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDeleteSong(song._id)}
-                    className="text-red-500 hover:text-red-700 transition duration-300"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                {isAuthenticated && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => openEditModal(song)}
+                      className="text-blue-500 hover:text-blue-700 transition duration-300"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSong(song._id)}
+                      className="text-red-500 hover:text-red-700 transition duration-300"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <button
