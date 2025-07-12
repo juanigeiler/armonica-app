@@ -1,14 +1,24 @@
 import { useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { makeAuthenticatedRequest } from '../utils/apiClient';
+import axios from 'axios';
 
 /**
  * Hook personalizado para hacer peticiones autenticadas con manejo automático de token expirado
  */
 export const useApiRequest = () => {
-  const { token, logout } = useAuth();
+  const { token, logout, isAuthenticated } = useAuth();
 
   const apiRequest = useCallback(async (config) => {
+    // Permitir peticiones GET sin token
+    if (config.method === 'GET' && !token) {
+      return axios({
+        ...config,
+        baseURL: process.env.REACT_APP_API_URL,
+        timeout: 10000
+      });
+    }
+
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -46,7 +56,8 @@ export const useApiRequest = () => {
     get,
     post,
     put,
-    delete: del
+    delete: del,
+    isAuthenticated
   };
 };
 

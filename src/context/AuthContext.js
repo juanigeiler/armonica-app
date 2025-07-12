@@ -31,6 +31,8 @@ export const AuthProvider = ({ children }) => {
         setToken(storedToken);
         axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
       }
       setLoading(false); // Terminamos el loading inicial
     };

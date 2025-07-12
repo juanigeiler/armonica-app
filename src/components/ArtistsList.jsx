@@ -11,7 +11,7 @@ const ArtistsList = () => {
   const [artistToDelete, setArtistToDelete] = useState(null);
   const [newArtist, setNewArtist] = useState({ name: "", genre: "" });
   const [editArtist, setEditArtist] = useState(null);
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const api = useApiRequest();
 
   useEffect(() => {
@@ -94,20 +94,27 @@ const ArtistsList = () => {
             🎵 Artists Collection
           </h1>
           <p className="text-gray-600 text-lg">Discover and manage your musical library</p>
+          {!isAuthenticated && (
+            <p className="text-gray-500 text-sm mt-2">
+              🔒 Login required to create, edit, or delete artists
+            </p>
+          )}
         </div>
         
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={() => setModalIsOpen(true)}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-8 rounded-full hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold text-lg"
-          >
-            <span className="flex items-center space-x-2">
-              <span>✨</span>
-              <span>Create New Artist</span>
-              <span>🎤</span>
-            </span>
-          </button>
-        </div>
+        {isAuthenticated && (
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setModalIsOpen(true)}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-8 rounded-full hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold text-lg"
+            >
+              <span className="flex items-center space-x-2">
+                <span>✨</span>
+                <span>Create New Artist</span>
+                <span>🎤</span>
+              </span>
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {artists.map((artist) => (
@@ -117,20 +124,22 @@ const ArtistsList = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800">{artist.name}</h2>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditArtist(artist)}
-                    className="text-blue-500 hover:text-blue-700 transition-colors duration-300 text-xl hover:scale-110 transform"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDeleteArtist(artist._id)}
-                    className="text-red-500 hover:text-red-700 transition-colors duration-300 text-xl hover:scale-110 transform"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                {isAuthenticated && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditArtist(artist)}
+                      className="text-blue-500 hover:text-blue-700 transition-colors duration-300 text-xl hover:scale-110 transform"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteArtist(artist._id)}
+                      className="text-red-500 hover:text-red-700 transition-colors duration-300 text-xl hover:scale-110 transform"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                )}
               </div>
               
               <div className="mb-4">

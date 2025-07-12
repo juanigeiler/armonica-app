@@ -5,20 +5,20 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import ArtistsList from "./components/ArtistsList";
 import SongsList from "./components/SongsList";
+import Login from "./components/Login";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <ProtectedRoute>
-          <div className="min-h-screen">
-            <Header />
-            <Routes>
-              <Route path="/" element={<ArtistsList />} />
-              <Route path="/artist/:id" element={<SongsList />} />
-            </Routes>
-          </div>
-        </ProtectedRoute>
+        <div className="min-h-screen">
+          <Header />
+          <Routes>
+            <Route path="/" element={<ArtistsList />} />
+            <Route path="/artist/:id" element={<SongsList />} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </div>
       </Router>
     </AuthProvider>
   );

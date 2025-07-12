@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -12,6 +12,10 @@ const Header = () => {
     event.preventDefault();
     event.stopPropagation();
     setShowLogoutModal(true);
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
   };
 
   const confirmLogout = () => {
@@ -34,27 +38,55 @@ const Header = () => {
           <div 
             className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity duration-300"
             onClick={handleHomeClick}
-          >
-            <div className="text-3xl">🎵</div>
-            <h1 className="text-2xl font-bold text-white tracking-wide">
-              Harmonica Library
-            </h1>
-          </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-full hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer z-50 relative font-semibold"
             style={{ 
-              pointerEvents: 'auto',
-              userSelect: 'none',
+              userSelect: 'none', 
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none',
               WebkitTapHighlightColor: 'transparent'
             }}
           >
-            <span className="flex items-center space-x-2 pointer-events-none">
-              <span>Logout</span>
-              <span>🚪</span>
-            </span>
-          </button>
+            <div className="text-3xl">🎵</div>
+            <h1 className="text-2xl font-bold text-white tracking-wide select-none">
+              Harmonica Library
+            </h1>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-full hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer z-50 relative font-semibold"
+                style={{ 
+                  pointerEvents: 'auto',
+                  userSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
+              >
+                <span className="flex items-center space-x-2 pointer-events-none">
+                  <span>Logout</span>
+                  <span>🚪</span>
+                </span>
+              </button>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <span className="text-white/80 text-sm">
+                  🔒 Login to create & edit
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogin}
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-full hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer z-50 relative font-semibold"
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>Login</span>
+                    <span>🔑</span>
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

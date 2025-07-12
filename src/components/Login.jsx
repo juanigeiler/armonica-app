@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const { login, loading } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,7 +23,9 @@ const Login = () => {
     }
 
     const result = await login(credentials);
-    if (!result.success) {
+    if (result.success) {
+      navigate('/');
+    } else {
       setError(result.error);
     }
   };
