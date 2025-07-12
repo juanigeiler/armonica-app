@@ -34,9 +34,9 @@ const Header = () => {
   return (
     <>
       <header className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-lg relative z-40">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center gap-4">
           <div 
-            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity duration-300"
+            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity duration-300 flex-shrink-0"
             onClick={handleHomeClick}
             style={{ 
               userSelect: 'none', 
@@ -47,7 +47,7 @@ const Header = () => {
             }}
           >
             <div className="text-3xl">🎵</div>
-            <h1 className="text-2xl font-bold text-white tracking-wide select-none">
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-wide select-none leading-tight font-['Space_Grotesk']">
               Harmonica Library
             </h1>
           </div>
@@ -68,23 +68,17 @@ const Header = () => {
                   <span>Logout</span>
                   <span>🚪</span>
                 </span>
-              </button>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <span className="text-white/80 text-sm">
-                  🔒 Login to create & edit
+              </button>            ) : (
+              <button
+                type="button"
+                onClick={handleLogin}
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-2 rounded-full hover:from-emerald-600 hover:to-teal-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer z-50 relative font-semibold"
+              >
+                <span className="flex items-center space-x-2">
+                  <span>Login</span>
+                  <span>🔑</span>
                 </span>
-                <button
-                  type="button"
-                  onClick={handleLogin}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-full hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer z-50 relative font-semibold"
-                >
-                  <span className="flex items-center space-x-2">
-                    <span>Login</span>
-                    <span>🔑</span>
-                  </span>
-                </button>
-              </div>
+              </button>
             )}
           </div>
         </div>
@@ -99,7 +93,7 @@ const Header = () => {
                 <span className="text-6xl">🚪</span>
               </div>
               
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">
+              <h2 className="text-2xl font-bold mb-4 text-gray-800 font-['Space_Grotesk']">
                 Logout Confirmation
               </h2>
               
