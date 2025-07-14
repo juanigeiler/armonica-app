@@ -16,7 +16,8 @@ const SongsList = () => {
   const [createModalIsOpen, setCreateModalIsOpen] = useState(false);
   const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
   const [songToDelete, setSongToDelete] = useState(null);
-  const [newSong, setNewSong] = useState({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
+  const [newSong, setNewSong] = useState({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", youtube_url: "", tabs: "" });
+  const [playerType, setPlayerType] = useState('spotify'); // 'spotify' or 'youtube'
   const { token, isAuthenticated } = useAuth();
   const api = useApiRequest();
 
@@ -39,6 +40,14 @@ const SongsList = () => {
   const openViewModal = (song) => {
     setSelectedSong(song);
     setViewModalIsOpen(true);
+    // Set the default player type based on available sources
+    if (song.spotify_song_id && song.youtube_url) {
+      setPlayerType('spotify'); // Default to Spotify if both are available
+    } else if (song.spotify_song_id) {
+      setPlayerType('spotify'); // Only Spotify available
+    } else if (song.youtube_url) {
+      setPlayerType('youtube'); // Only YouTube available
+    }
   };
 
   const closeViewModal = () => {
@@ -52,7 +61,7 @@ const SongsList = () => {
 
   const closeCreateModal = () => {
     setCreateModalIsOpen(false);
-    setNewSong({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", tabs: "" });
+    setNewSong({ title: "", album: "", key: "", difficulty: 0, spotify_song_id: "", youtube_url: "", tabs: "" });
   };
 
   const openEditModal = (song) => {
@@ -233,12 +242,6 @@ const SongsList = () => {
                         📖
                       </button>
                     </div>
-                    <div className="bg-gradient-to-r from-purple-100 to-violet-100 rounded-full p-1.5 animate-bounce delay-300">
-                      <span className="text-purple-600 text-sm">🎵</span>
-                    </div>
-                    <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full p-1.5 animate-bounce delay-400">
-                      <span className="text-blue-600 text-sm">🎶</span>
-                    </div>
                   </div>
                 )}
               </div>
@@ -366,33 +369,112 @@ const SongsList = () => {
                   </div>
                 </div>
                 
-                {/* Spotify Player Section */}
-                {selectedSong.spotify_song_id && (
+                {/* Media Player Section - Only show if at least one media source is available */}
+                {(selectedSong.spotify_song_id || selectedSong.youtube_url) && (
                   <div className="bg-stone-100 rounded-xl p-6 mb-6 border border-stone-300 shadow-sm">
                     <div className="flex items-center space-x-3 mb-4">
                       <span className="text-2xl">🎧</span>
-                      <h3 className="text-xl font-semibold text-gray-800">Listen on Spotify</h3>
+                      <h3 className="text-xl font-semibold text-gray-800">Listen & Watch</h3>
                     </div>
                     
                     <div className="grid md:grid-cols-2 gap-6 items-start">
-                      {/* Spotify Player */}
-                      <div className="flex justify-center md:justify-start">
-                        <iframe
-                          src={`https://open.spotify.com/embed/track/${selectedSong.spotify_song_id}`}
-                          width="100%"
-                          height="152"
-                          allow="encrypted-media"
-                          className="rounded-lg max-w-sm"
-                          title="Spotify iFrame"
-                        ></iframe>
+                      {/* Media Player */}
+                      <div className="flex flex-col items-center">
+                        <div className="w-full flex justify-center mb-3">
+                          {playerType === 'spotify' && selectedSong.spotify_song_id ? (
+                            <iframe
+                              src={`https://open.spotify.com/embed/track/${selectedSong.spotify_song_id}`}
+                              width="100%"
+                              height="152"
+                              allow="encrypted-media"
+                              className="rounded-lg max-w-sm"
+                              title="Spotify Player"
+                            ></iframe>
+                          ) : playerType === 'youtube' && selectedSong.youtube_url ? (
+                            <iframe
+                              width="100%"
+                              height="200"
+                              src={selectedSong.youtube_url.includes('embed') 
+                                ? selectedSong.youtube_url 
+                                : selectedSong.youtube_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')
+                              }
+                              title="YouTube video player"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                              className="rounded-lg max-w-sm"
+                            ></iframe>
+                          ) : selectedSong.spotify_song_id ? (
+                            <iframe
+                              src={`https://open.spotify.com/embed/track/${selectedSong.spotify_song_id}`}
+                              width="100%"
+                              height="152"
+                              allow="encrypted-media"
+                              className="rounded-lg max-w-sm"
+                              title="Spotify Player"
+                            ></iframe>
+                          ) : selectedSong.youtube_url ? (
+                            <iframe
+                              width="100%"
+                              height="200"
+                              src={selectedSong.youtube_url.includes('embed') 
+                                ? selectedSong.youtube_url 
+                                : selectedSong.youtube_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')
+                              }
+                              title="YouTube video player"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                              className="rounded-lg max-w-sm"
+                            ></iframe>
+                          ) : null}
+                        </div>
+                        
+                        {/* Player Type Dots - Only show if both sources are available */}
+                        {selectedSong.spotify_song_id && selectedSong.youtube_url && (
+                          <div className="flex items-center justify-center space-x-3">
+                            <button
+                              onClick={() => setPlayerType('spotify')}
+                              className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${
+                                playerType === 'spotify' 
+                                  ? 'bg-green-500 shadow-lg shadow-green-200' 
+                                  : 'bg-gray-300 hover:bg-gray-400'
+                              }`}
+                              title="Spotify"
+                            />
+                            <button
+                              onClick={() => setPlayerType('youtube')}
+                              className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${
+                                playerType === 'youtube' 
+                                  ? 'bg-red-500 shadow-lg shadow-red-200' 
+                                  : 'bg-gray-300 hover:bg-gray-400'
+                              }`}
+                              title="YouTube"
+                            />
+                          </div>
+                        )}
                       </div>
                       
-                      {/* Song Details - Hidden on mobile */}
+                      {/* Media Details */}
                       <div className="hidden md:block">
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
+                        <div className={`p-3 rounded-lg border transition-colors duration-300 ${
+                          (selectedSong.spotify_song_id && selectedSong.youtube_url) ? (
+                            playerType === 'spotify' 
+                              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
+                              : 'bg-gradient-to-r from-red-50 to-pink-50 border-red-200'
+                          ) : selectedSong.spotify_song_id 
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+                            : 'bg-gradient-to-r from-red-50 to-pink-50 border-red-200'
+                        }`}>
                           <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center">
-                            <span className="text-lg mr-1">🎵</span>
-                            Song Details
+                            <span className="text-lg mr-1">
+                              {selectedSong.spotify_song_id && selectedSong.youtube_url ? (
+                                playerType === 'spotify' ? '🎵' : '📺'
+                              ) : selectedSong.spotify_song_id ? '🎵' : '📺'}
+                            </span>
+                            {selectedSong.spotify_song_id && selectedSong.youtube_url ? (
+                              playerType === 'spotify' ? 'Spotify Player' : 'YouTube Player'
+                            ) : selectedSong.spotify_song_id ? 'Spotify Player' : 'YouTube Player'}
                           </h4>
                           <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
@@ -410,7 +492,7 @@ const SongsList = () => {
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-gray-600 font-medium">Difficulty:</span>
                               <Rating 
-                                name="spotify-difficulty" 
+                                name="player-difficulty" 
                                 value={selectedSong.difficulty} 
                                 precision={1} 
                                 readOnly 
@@ -418,6 +500,16 @@ const SongsList = () => {
                                 sx={{ fontSize: '0.875rem' }}
                               />
                             </div>
+                            {selectedSong.spotify_song_id && (
+                              <div className="mt-2 pt-2 border-t border-green-200">
+                                <span className="text-xs text-green-700 font-medium">✓ Spotify available</span>
+                              </div>
+                            )}
+                            {selectedSong.youtube_url && (
+                              <div className="mt-2 pt-2 border-t border-red-200">
+                                <span className="text-xs text-red-700 font-medium">📺 YouTube video</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -503,17 +595,32 @@ const SongsList = () => {
                 </div>
               </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Spotify Song ID</label>
-                <input
-                  type="text"
-                  name="spotify_song_id"
-                  value={newSong.spotify_song_id}
-                  onChange={handleChange}
-                  placeholder="Optional: Spotify track ID..."
-                  className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl transition-colors duration-300"
-                />
-                <p className="text-xs text-gray-500 mt-1">💡 You can find this in the Spotify track URL</p>
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Spotify Song ID</label>
+                  <input
+                    type="text"
+                    name="spotify_song_id"
+                    value={newSong.spotify_song_id}
+                    onChange={handleChange}
+                    placeholder="Optional: Spotify track ID..."
+                    className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">💡 You can find this in the Spotify track URL</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">YouTube URL</label>
+                  <input
+                    type="text"
+                    name="youtube_url"
+                    value={newSong.youtube_url}
+                    onChange={handleChange}
+                    placeholder="Optional: YouTube video URL..."
+                    className="w-full border-2 border-gray-200 focus:border-emerald-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">📺 Paste the full YouTube URL</p>
+                </div>
               </div>
               
               <div className="mb-6">
@@ -613,17 +720,32 @@ const SongsList = () => {
                 </div>
               </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Spotify Song ID</label>
-                <input
-                  type="text"
-                  name="spotify_song_id"
-                  value={selectedSong.spotify_song_id}
-                  onChange={handleEditChange}
-                  placeholder="Optional: Spotify track ID..."
-                  className="w-full border-2 border-gray-200 focus:border-blue-500 p-3 rounded-xl transition-colors duration-300"
-                />
-                <p className="text-xs text-gray-500 mt-1">💡 You can find this in the Spotify track URL</p>
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">Spotify Song ID</label>
+                  <input
+                    type="text"
+                    name="spotify_song_id"
+                    value={selectedSong.spotify_song_id}
+                    onChange={handleEditChange}
+                    placeholder="Optional: Spotify track ID..."
+                    className="w-full border-2 border-gray-200 focus:border-blue-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">💡 You can find this in the Spotify track URL</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">YouTube URL</label>
+                  <input
+                    type="text"
+                    name="youtube_url"
+                    value={selectedSong.youtube_url || ""}
+                    onChange={handleEditChange}
+                    placeholder="Optional: YouTube video URL..."
+                    className="w-full border-2 border-gray-200 focus:border-blue-500 p-3 rounded-xl transition-colors duration-300"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">📺 Paste the full YouTube URL</p>
+                </div>
               </div>
               
               <div className="mb-6">
